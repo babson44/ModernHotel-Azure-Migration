@@ -51,17 +51,17 @@ $disk = Get-Disk | Where-Object { $_.PartitionStyle -eq 'RAW' } | Select-Object 
 if ($disk) {
     Write-Log "Initialising disk $($disk.Number) as D:"
     $disk | Initialize-Disk -PartitionStyle GPT -PassThru |
-        New-Partition -DriveLetter D -UseMaximumSize |
+        New-Partition -DriveLetter F -UseMaximumSize |
         Format-Volume -FileSystem NTFS -NewFileSystemLabel 'HyperVData' -Confirm:$false | Out-Null
     Write-Log "Data disk initialised as D:"
 } else {
     Write-Log "No RAW disk found - D: may already exist" 'WARN'
 }
 
-New-Item -ItemType Directory -Force -Path 'D:\HyperV\VHDs'     | Out-Null
-New-Item -ItemType Directory -Force -Path 'D:\HyperV\VMs'      | Out-Null
-New-Item -ItemType Directory -Force -Path 'D:\HyperV\ISOs'     | Out-Null
-New-Item -ItemType Directory -Force -Path 'D:\HyperV\Scripts'  | Out-Null
+New-Item -ItemType Directory -Force -Path 'F:\HyperV\VHDs'     | Out-Null
+New-Item -ItemType Directory -Force -Path 'F:\HyperV\VMs'      | Out-Null
+New-Item -ItemType Directory -Force -Path 'F:\HyperV\ISOs'     | Out-Null
+New-Item -ItemType Directory -Force -Path 'F:\HyperV\Scripts'  | Out-Null
 
 # - Phase 1: Install Hyper-V -
 Write-Log "=== Phase 1: Install Hyper-V ==="
@@ -88,7 +88,7 @@ if (-not (Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue)) {
 
 # - Phase 3: Download Windows Server 2019 Evaluation ISO -
 Write-Log "=== Phase 3: Download Windows Server 2019 Evaluation ISO ==="
-$isoPath = 'D:\HyperV\ISOs\WS2019Eval.iso'
+$isoPath = 'F:\HyperV\ISOs\WS2019Eval.iso'
 if (-not (Test-Path $isoPath)) {
     # Windows Server 2019 Evaluation - 180-day, no product key needed
     $isoUrl = 'https://go.microsoft.com/fwlink/p/?LinkID=2195280-clcid=0x409-culture=en-us-country=US'
@@ -102,11 +102,11 @@ if (-not (Test-Path $isoPath)) {
 
 # - Phase 4: Build base VHDX from ISO -
 Write-Log "=== Phase 4: Build base VHDX from ISO ==="
-$baseVhdx = 'D:\HyperV\VHDs\WS2019-Base.vhdx'
+$baseVhdx = 'F:\HyperV\VHDs\WS2019-Base.vhdx'
 
 if (-not (Test-Path $baseVhdx)) {
     Write-Log "Downloading Convert-WindowsImage.ps1 ..."
-    $cwi = 'D:\HyperV\Scripts\Convert-WindowsImage.ps1'
+    $cwi = 'F:\HyperV\Scripts\Convert-WindowsImage.ps1'
     Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/microsoft/MSLab/master/Tools/Convert-WindowsImage.ps1' -OutFile $cwi -UseBasicParsing
 
     Write-Log "Converting ISO to VHDX (takes ~10-15 min)..."
@@ -129,8 +129,8 @@ $vms = @(
 
 foreach ($vmCfg in $vms) {
     $vmName   = $vmCfg.Name
-    $vhdPath  = "D:\HyperV\VHDs\$vmName.vhdx"
-    $vmPath   = "D:\HyperV\VMs\$vmName"
+    $vhdPath  = "F:\HyperV\VHDs\$vmName.vhdx"
+    $vmPath   = "F:\HyperV\VMs\$vmName"
 
     if (Get-VM -Name $vmName -ErrorAction SilentlyContinue) {
         Write-Log "VM $vmName already exists - skipping"
@@ -178,7 +178,7 @@ Write-Log "=== Phase 7: Configure static IPs and credentials via unattend ==="
 foreach ($vmCfg in $vms) {
     $vmName  = $vmCfg.Name
     $vmIp    = $vmCfg.IP
-    $outFile = "D:\HyperV\Scripts\setup-$vmName.ps1"
+    $outFile = "F:\HyperV\Scripts\setup-$vmName.ps1"
 
     $script = @"
 # Auto-generated setup script for $vmName
@@ -239,7 +239,7 @@ Write-Log "NEXT STEPS:"
 Write-Log "  1. RDP into this host at the public IP"
 Write-Log "  2. Open Hyper-V Manager - you will see hotel-sql, hotel-api, hotel-web"
 Write-Log "  3. The nested VMs are completing Windows Server setup (allow 10-20 min)"
-Write-Log "  4. Setup scripts in D:\HyperV\Scripts\ configure each VM"
+Write-Log "  4. Setup scripts in F:\HyperV\Scripts\ configure each VM"
 Write-Log "  5. To deploy Azure Migrate appliance: create a new VM in Hyper-V Manager,"
 Write-Log "     import the appliance VHD downloaded from the Azure portal"
 Write-Log "  6. See README.md Phase 2 walkthrough for full migration steps"
