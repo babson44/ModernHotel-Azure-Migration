@@ -49,13 +49,36 @@ function Write-Log {
 Write-Log "=== Phase 0: Initialise data disk ==="
 $disk = Get-Disk | Where-Object { $_.PartitionStyle -eq 'RAW' } | Select-Object -First 1
 if ($disk) {
-    Write-Log "Initialising disk $($disk.Number) as D:"
+    Write-Log "Initialising disk $($disk.Number) and assigning F:"
     $disk | Initialize-Disk -PartitionStyle GPT -PassThru |
         New-Partition -DriveLetter F -UseMaximumSize |
         Format-Volume -FileSystem NTFS -NewFileSystemLabel 'HyperVData' -Confirm:$false | Out-Null
-    Write-Log "Data disk initialised as D:"
+    Start-Sleep -Seconds 10
+    Write-Log "Data disk initialised as F:"
 } else {
-    Write-Log "No RAW disk found - D: may already exist" 'WARN'
+    Write-Log "No RAW disk found - checking if F: already assigned" 'WARN'
+    if (-not (Test-Path 'F:\')) {
+        Write-Log "F: not mounted - attempting to assign drive letter to existing data partition" 'WARN'
+        $partition = Get-Disk |
+            Where-Object { $_.Number -gt 0 -and $_.PartitionStyle -eq 'GPT' } |
+            Get-Partition |
+            Where-Object { $_.Type -eq 'Basic' -and ($_.DriveLetter -eq $null -or $_.DriveLetter -eq [char]0) } |
+            Select-Object -First 1
+        if ($partition) {
+            $partition | Set-Partition -NewDriveLetter F
+            Start-Sleep -Seconds 5
+            Write-Log "Drive letter F: assigned to existing partition"
+        } else {
+            Write-Log "No assignable partition found - F: may already be mounted" 'WARN'
+        }
+    } else {
+        Write-Log "F: already mounted, skipping disk init"
+    }
+}
+
+if (-not (Test-Path 'F:\')) {
+    Write-Log "FATAL: F: drive is not available. Cannot continue." 'ERROR'
+    exit 1
 }
 
 New-Item -ItemType Directory -Force -Path 'F:\HyperV\VHDs'     | Out-Null
