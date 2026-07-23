@@ -14,7 +14,7 @@ var publicIpName   = '${prefix}-pip'
 var nicName        = '${prefix}-nic'
 
 // ── NSG ──────────────────────────────────────────────────────────────────────
-resource nsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
+resource nsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   name: nsgName
   location: location
   properties: {
@@ -66,7 +66,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
 }
 
 // ── Virtual Network ───────────────────────────────────────────────────────────
-resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: vnetName
   location: location
   properties: {
@@ -88,7 +88,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
 }
 
 // ── Public IP ─────────────────────────────────────────────────────────────────
-resource publicIp 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
+resource publicIp 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
   name: publicIpName
   location: location
   sku: {
@@ -103,7 +103,7 @@ resource publicIp 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
 }
 
 // ── NIC ───────────────────────────────────────────────────────────────────────
-resource nic 'Microsoft.Network/networkInterfaces@2023-09-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: nicName
   location: location
   properties: {

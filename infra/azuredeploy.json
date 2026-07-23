@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "3056249303558250697"
+      "templateHash": "7277821899633089069"
     }
   },
   "parameters": {
@@ -84,7 +84,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.45.15.27210",
-              "templateHash": "5765726228594000428"
+              "templateHash": "9458331237187532341"
             }
           },
           "parameters": {
@@ -111,7 +111,7 @@
           "resources": [
             {
               "type": "Microsoft.Network/networkSecurityGroups",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2022-07-01",
               "name": "[variables('nsgName')]",
               "location": "[parameters('location')]",
               "properties": {
@@ -163,7 +163,7 @@
             },
             {
               "type": "Microsoft.Network/virtualNetworks",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2022-07-01",
               "name": "[variables('vnetName')]",
               "location": "[parameters('location')]",
               "properties": {
@@ -190,7 +190,7 @@
             },
             {
               "type": "Microsoft.Network/publicIPAddresses",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2022-07-01",
               "name": "[variables('publicIpName')]",
               "location": "[parameters('location')]",
               "sku": {
@@ -205,7 +205,7 @@
             },
             {
               "type": "Microsoft.Network/networkInterfaces",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2022-07-01",
               "name": "[variables('nicName')]",
               "location": "[parameters('location')]",
               "properties": {
@@ -218,7 +218,7 @@
                         "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
                       },
                       "subnet": {
-                        "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2023-09-01').subnets[0].id]"
+                        "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2022-07-01').subnets[0].id]"
                       }
                     }
                   }
@@ -237,11 +237,11 @@
             },
             "publicIpFqdn": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2023-09-01').dnsSettings.fqdn]"
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2022-07-01').dnsSettings.fqdn]"
             },
             "publicIpAddr": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2023-09-01').ipAddress]"
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2022-07-01').ipAddress]"
             }
           }
         }
