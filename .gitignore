@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+*.user
+appsettings.Development.json
+
+## Azure / IaC
+.azure/
+*.tfstate
+*.tfstate.*
+.terraform/
+
+## OS / editor
+.vs/
+.vscode/
+*.suo
+Thumbs.db
+.DS_Store
+
+## Secrets
+*.env
+local.settings.json
