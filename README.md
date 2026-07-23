@@ -24,6 +24,31 @@ Access to the Hyper-V host is via **Azure Bastion (Basic)** — secure browser-b
 
 ---
 
+
+---
+
+## ⚠️ Before You Deploy — Subscription Pre-flight (Microsoft Employees)
+
+> **Non-Microsoft / regular Azure subscriptions** (Pay-as-you-go, EA, Visual Studio): skip this — the template deploys without any extra steps.
+
+**Microsoft Employee (ME) managed subscriptions** (`ME-MngEnv*`) require a one-time feature registration before Standard SKU Public IP addresses can be created. Without it, the deployment fails with `SubscriptionNotRegisteredForFeature`.
+
+**Run this once before clicking Deploy to Azure:**
+
+```powershell
+# Fix the subscription you plan to deploy to
+az login
+az account set --subscription "ME-MngEnv243315-adiallo-3"   # replace with your subscription name
+.\scripts\Prepare-Subscription.ps1
+```
+
+**Or fix all your ME subscriptions at once:**
+
+```powershell
+.\scripts\Prepare-Subscription.ps1 -AllSubscriptions
+```
+
+The script checks each subscription, registers the feature if missing, and waits for confirmation. It is safe to run multiple times.
 ## Deployment Parameters
 
 | Parameter | Default | Description |
@@ -140,3 +165,4 @@ cd app
 dotnet build ModernHotel.slnx
 # Expected: Build succeeded. 0 Error(s)
 ```
+
