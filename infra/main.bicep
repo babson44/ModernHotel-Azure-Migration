@@ -39,7 +39,7 @@ param prefix string = 'modernhotel'
 param vmSize string = 'Standard_D8s_v3'
 
 @description('GitHub raw content base URL for bootstrap scripts')
-param scriptsBaseUrl string = 'https://raw.githubusercontent.com/bsbson44/ModernHotel-Azure-Migration/main'
+param scriptsBaseUrl string = 'https://raw.githubusercontent.com/babson44/ModernHotel-Azure-Migration/main'
 
 // ── Networking ────────────────────────────────────────────────────────────────
 module network 'modules/network.bicep' = {
