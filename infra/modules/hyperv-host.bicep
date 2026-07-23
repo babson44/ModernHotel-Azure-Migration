@@ -24,6 +24,7 @@ param vmSize string
 param scriptsBaseUrl string
 
 var vmName           = '${prefix}-hyperv-host'
+var computerName     = take(replace(prefix, '-', ''), 12)   // max 15 chars for Windows NetBIOS
 var osDiskName       = '${vmName}-osdisk'
 var scriptFileName   = 'Initialize-HyperVHost.ps1'
 
@@ -36,7 +37,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
       vmSize: vmSize
     }
     osProfile: {
-      computerName:         vmName
+      computerName:         computerName
       adminUsername:        adminUsername
       adminPassword:        adminPassword
       windowsConfiguration: {

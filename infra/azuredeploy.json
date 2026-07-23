@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "11011776353677453186"
+      "templateHash": "8518532905481955348"
     }
   },
   "parameters": {
@@ -296,7 +296,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.45.15.27210",
-              "templateHash": "11450785322439361423"
+              "templateHash": "14496182520340934659"
             }
           },
           "parameters": {
@@ -345,6 +345,7 @@
           },
           "variables": {
             "vmName": "[format('{0}-hyperv-host', parameters('prefix'))]",
+            "computerName": "[take(replace(parameters('prefix'), '-', ''), 12)]",
             "osDiskName": "[format('{0}-osdisk', variables('vmName'))]",
             "scriptFileName": "Initialize-HyperVHost.ps1"
           },
@@ -359,7 +360,7 @@
                   "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
-                  "computerName": "[variables('vmName')]",
+                  "computerName": "[variables('computerName')]",
                   "adminUsername": "[parameters('adminUsername')]",
                   "adminPassword": "[parameters('adminPassword')]",
                   "windowsConfiguration": {
