@@ -8,6 +8,15 @@ Migration* lab, but with a **lighter, modern 3-tier hotel application**. It lets
    and **Azure Database Migration Service** (SQL Server 2016 → Azure SQL Database).
 3. **Modernize** the migrated app by adding an **AI agent** (Azure OpenAI / Foundry) on top.
 
+## 🚀 Deploy the "On-Premises" Environment to Azure
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbsbson44%2FModernHotel-Azure-Migration%2Fmain%2Finfra%2Fazuredeploy.json)
+
+> **What this deploys:** A Windows Server 2022 VM with nested Hyper-V, automatically
+> provisioning three nested VMs (`hotel-sql`, `hotel-api`, `hotel-web`) that simulate
+> an on-premises hotel system ready for Azure Migrate discovery.
+> Estimated deployment time: ~60 minutes (most time is Windows setup inside nested VMs).
+
 ## Architecture
 
 ### "On-premises" environment (source)
