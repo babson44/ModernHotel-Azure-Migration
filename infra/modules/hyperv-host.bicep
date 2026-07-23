@@ -28,7 +28,7 @@ var osDiskName       = '${vmName}-osdisk'
 var scriptFileName   = 'Initialize-HyperVHost.ps1'
 
 // ── Virtual Machine ───────────────────────────────────────────────────────────
-resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
   name: vmName
   location: location
   properties: {
@@ -89,7 +89,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
 }
 
 // ── Custom Script Extension — runs Initialize-HyperVHost.ps1 ─────────────────
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' = {
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2023-03-01' = {
   parent: vm
   name:     'initialize-hyperv'
   location: location

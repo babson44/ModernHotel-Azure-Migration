@@ -6,8 +6,10 @@
 //   hotel-api  — ASP.NET Core Web API (.NET 10)
 //   hotel-web  — ASP.NET Core MVC frontend (.NET 10)
 //
-// After deployment (~45-60 min for nested VM setup) you can:
-//   1. RDP into the Hyper-V host
+// Access: Azure Bastion (Basic) — browser-based RDP, no public IP on VM
+//
+// After deployment (~45-60 min for nested VM setup):
+//   1. Connect via Azure Bastion in the Azure portal
 //   2. Deploy Azure Migrate appliance as a nested VM
 //   3. Discover hotel-sql / hotel-api / hotel-web with Azure Migrate
 //   4. Replicate and migrate them to Azure VMs + Azure SQL Database
@@ -65,14 +67,11 @@ module hypervHost 'modules/hyperv-host.bicep' = {
 }
 
 // ── Outputs ───────────────────────────────────────────────────────────────────
-@description('Public FQDN of the Hyper-V host — use this for RDP')
-output hypervHostFqdn string = network.outputs.publicIpFqdn
-
-@description('Public IP address of the Hyper-V host')
-output hypervHostIp string = network.outputs.publicIpAddr
-
-@description('RDP connection string')
-output rdpConnection string = 'mstsc /v:${network.outputs.publicIpFqdn}'
-
-@description('VM name')
+@description('VM name — use this to connect via Azure Bastion in the portal')
 output vmName string = hypervHost.outputs.vmName
+
+@description('Azure Bastion name')
+output bastionName string = network.outputs.bastionName
+
+@description('How to connect: open Azure portal → VM → Connect → Bastion')
+output connectInstructions string = 'Go to portal.azure.com → Resource Group → ${hypervHost.outputs.vmName} → Connect → Bastion'

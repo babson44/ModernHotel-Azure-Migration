@@ -1,5 +1,6 @@
 // =============================================================================
-// network.bicep — VNet, Subnet, NSG, Public IP, NIC for the Hyper-V host
+// network.bicep — VNet, NSG, Azure Bastion (Basic), NIC for the Hyper-V host
+// VM has no public IP — access is via Azure Bastion (browser-based RDP)
 // =============================================================================
 @description('Azure region')
 param location string
@@ -10,31 +11,18 @@ param prefix string
 var vnetName       = '${prefix}-vnet'
 var subnetName     = '${prefix}-subnet'
 var nsgName        = '${prefix}-nsg'
-var publicIpName   = '${prefix}-pip'
 var nicName        = '${prefix}-nic'
+var bastionName    = '${prefix}-bastion'
+var bastionPipName = '${prefix}-bastion-pip'
 
-// ── NSG ──────────────────────────────────────────────────────────────────────
+// ── NSG (VM subnet — RDP handled by Bastion, no direct internet RDP) ─────────
 resource nsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   name: nsgName
   location: location
   properties: {
     securityRules: [
       {
-        name: 'Allow-RDP'
-        properties: {
-          priority: 1000
-          direction: 'Inbound'
-          access: 'Allow'
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          destinationPortRange: '3389'
-          sourceAddressPrefix: '*'
-          destinationAddressPrefix: '*'
-          description: 'Allow RDP access to Hyper-V host'
-        }
-      }
-      {
-        name: 'Allow-HTTP'
+        name: 'Allow-HTTP-Inbound'
         properties: {
           priority: 1010
           direction: 'Inbound'
@@ -44,11 +32,11 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
           destinationPortRange: '80'
           sourceAddressPrefix: '*'
           destinationAddressPrefix: '*'
-          description: 'Allow HTTP to hotel web app'
+          description: 'HTTP access to hotel web app (nested VM NAT)'
         }
       }
       {
-        name: 'Allow-HTTPS'
+        name: 'Allow-HTTPS-Inbound'
         properties: {
           priority: 1020
           direction: 'Inbound'
@@ -58,14 +46,14 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
           destinationPortRange: '443'
           sourceAddressPrefix: '*'
           destinationAddressPrefix: '*'
-          description: 'Allow HTTPS to hotel web app'
+          description: 'HTTPS access to hotel web app (nested VM NAT)'
         }
       }
     ]
   }
 }
 
-// ── Virtual Network ───────────────────────────────────────────────────────────
+// ── Virtual Network — two subnets: VM + AzureBastionSubnet ───────────────────
 resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: vnetName
   location: location
@@ -78,31 +66,49 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
         name: subnetName
         properties: {
           addressPrefix: '10.0.1.0/24'
-          networkSecurityGroup: {
-            id: nsg.id
-          }
+          networkSecurityGroup: { id: nsg.id }
+        }
+      }
+      {
+        // Name must be exactly 'AzureBastionSubnet' — /26 minimum
+        name: 'AzureBastionSubnet'
+        properties: {
+          addressPrefix: '10.0.2.0/26'
         }
       }
     ]
   }
 }
 
-// ── Public IP ─────────────────────────────────────────────────────────────────
-resource publicIp 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
-  name: publicIpName
+// ── Bastion Public IP (Standard SKU required by Azure Bastion) ────────────────
+resource bastionPip 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
+  name: bastionPipName
   location: location
-  sku: {
-    name: 'Standard'
-  }
+  sku: { name: 'Standard' }
   properties: {
     publicIPAllocationMethod: 'Static'
-    dnsSettings: {
-      domainNameLabel: toLower('${prefix}-hotel')
-    }
   }
 }
 
-// ── NIC ───────────────────────────────────────────────────────────────────────
+// ── Azure Bastion — Basic SKU (lowest cost, browser-based RDP/SSH) ────────────
+resource bastion 'Microsoft.Network/bastionHosts@2022-07-01' = {
+  name: bastionName
+  location: location
+  sku: { name: 'Basic' }
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'bastionIpConfig'
+        properties: {
+          publicIPAddress: { id: bastionPip.id }
+          subnet: { id: vnet.properties.subnets[1].id }
+        }
+      }
+    ]
+  }
+}
+
+// ── NIC — private IP only; Bastion provides secure access ─────────────────────
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: nicName
   location: location
@@ -112,12 +118,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIp.id
-          }
-          subnet: {
-            id: vnet.properties.subnets[0].id
-          }
+          subnet: { id: vnet.properties.subnets[0].id }
         }
       }
     ]
@@ -125,6 +126,5 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
 }
 
 // ── Outputs ───────────────────────────────────────────────────────────────────
-output nicId         string = nic.id
-output publicIpFqdn  string = publicIp.properties.dnsSettings.fqdn
-output publicIpAddr  string = publicIp.properties.ipAddress
+output nicId       string = nic.id
+output bastionName string = bastion.name

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.45.15.27210",
-      "templateHash": "7277821899633089069"
+      "templateHash": "11011776353677453186"
     }
   },
   "parameters": {
@@ -84,7 +84,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.45.15.27210",
-              "templateHash": "9458331237187532341"
+              "templateHash": "8567463983032344595"
             }
           },
           "parameters": {
@@ -105,8 +105,9 @@
             "vnetName": "[format('{0}-vnet', parameters('prefix'))]",
             "subnetName": "[format('{0}-subnet', parameters('prefix'))]",
             "nsgName": "[format('{0}-nsg', parameters('prefix'))]",
-            "publicIpName": "[format('{0}-pip', parameters('prefix'))]",
-            "nicName": "[format('{0}-nic', parameters('prefix'))]"
+            "nicName": "[format('{0}-nic', parameters('prefix'))]",
+            "bastionName": "[format('{0}-bastion', parameters('prefix'))]",
+            "bastionPipName": "[format('{0}-bastion-pip', parameters('prefix'))]"
           },
           "resources": [
             {
@@ -117,21 +118,7 @@
               "properties": {
                 "securityRules": [
                   {
-                    "name": "Allow-RDP",
-                    "properties": {
-                      "priority": 1000,
-                      "direction": "Inbound",
-                      "access": "Allow",
-                      "protocol": "Tcp",
-                      "sourcePortRange": "*",
-                      "destinationPortRange": "3389",
-                      "sourceAddressPrefix": "*",
-                      "destinationAddressPrefix": "*",
-                      "description": "Allow RDP access to Hyper-V host"
-                    }
-                  },
-                  {
-                    "name": "Allow-HTTP",
+                    "name": "Allow-HTTP-Inbound",
                     "properties": {
                       "priority": 1010,
                       "direction": "Inbound",
@@ -141,11 +128,11 @@
                       "destinationPortRange": "80",
                       "sourceAddressPrefix": "*",
                       "destinationAddressPrefix": "*",
-                      "description": "Allow HTTP to hotel web app"
+                      "description": "HTTP access to hotel web app (nested VM NAT)"
                     }
                   },
                   {
-                    "name": "Allow-HTTPS",
+                    "name": "Allow-HTTPS-Inbound",
                     "properties": {
                       "priority": 1020,
                       "direction": "Inbound",
@@ -155,7 +142,7 @@
                       "destinationPortRange": "443",
                       "sourceAddressPrefix": "*",
                       "destinationAddressPrefix": "*",
-                      "description": "Allow HTTPS to hotel web app"
+                      "description": "HTTPS access to hotel web app (nested VM NAT)"
                     }
                   }
                 ]
@@ -181,6 +168,12 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
                       }
                     }
+                  },
+                  {
+                    "name": "AzureBastionSubnet",
+                    "properties": {
+                      "addressPrefix": "10.0.2.0/26"
+                    }
                   }
                 ]
               },
@@ -191,17 +184,42 @@
             {
               "type": "Microsoft.Network/publicIPAddresses",
               "apiVersion": "2022-07-01",
-              "name": "[variables('publicIpName')]",
+              "name": "[variables('bastionPipName')]",
               "location": "[parameters('location')]",
               "sku": {
                 "name": "Standard"
               },
               "properties": {
-                "publicIPAllocationMethod": "Static",
-                "dnsSettings": {
-                  "domainNameLabel": "[toLower(format('{0}-hotel', parameters('prefix')))]"
-                }
+                "publicIPAllocationMethod": "Static"
               }
+            },
+            {
+              "type": "Microsoft.Network/bastionHosts",
+              "apiVersion": "2022-07-01",
+              "name": "[variables('bastionName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Basic"
+              },
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "bastionIpConfig",
+                    "properties": {
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastionPipName'))]"
+                      },
+                      "subnet": {
+                        "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2022-07-01').subnets[1].id]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastionPipName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+              ]
             },
             {
               "type": "Microsoft.Network/networkInterfaces",
@@ -214,9 +232,6 @@
                     "name": "ipconfig1",
                     "properties": {
                       "privateIPAllocationMethod": "Dynamic",
-                      "publicIPAddress": {
-                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
-                      },
                       "subnet": {
                         "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2022-07-01').subnets[0].id]"
                       }
@@ -225,7 +240,6 @@
                 ]
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
               ]
             }
@@ -235,13 +249,9 @@
               "type": "string",
               "value": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
             },
-            "publicIpFqdn": {
+            "bastionName": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2022-07-01').dnsSettings.fqdn]"
-            },
-            "publicIpAddr": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2022-07-01').ipAddress]"
+              "value": "[variables('bastionName')]"
             }
           }
         }
@@ -286,7 +296,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.45.15.27210",
-              "templateHash": "7081887485812593061"
+              "templateHash": "11450785322439361423"
             }
           },
           "parameters": {
@@ -341,7 +351,7 @@
           "resources": [
             {
               "type": "Microsoft.Compute/virtualMachines",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2023-03-01",
               "name": "[variables('vmName')]",
               "location": "[parameters('location')]",
               "properties": {
@@ -401,7 +411,7 @@
             },
             {
               "type": "Microsoft.Compute/virtualMachines/extensions",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2023-03-01",
               "name": "[format('{0}/{1}', variables('vmName'), 'initialize-hyperv')]",
               "location": "[parameters('location')]",
               "properties": {
@@ -441,33 +451,26 @@
     }
   ],
   "outputs": {
-    "hypervHostFqdn": {
-      "type": "string",
-      "metadata": {
-        "description": "Public FQDN of the Hyper-V host — use this for RDP"
-      },
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'network'), '2025-04-01').outputs.publicIpFqdn.value]"
-    },
-    "hypervHostIp": {
-      "type": "string",
-      "metadata": {
-        "description": "Public IP address of the Hyper-V host"
-      },
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'network'), '2025-04-01').outputs.publicIpAddr.value]"
-    },
-    "rdpConnection": {
-      "type": "string",
-      "metadata": {
-        "description": "RDP connection string"
-      },
-      "value": "[format('mstsc /v:{0}', reference(resourceId('Microsoft.Resources/deployments', 'network'), '2025-04-01').outputs.publicIpFqdn.value)]"
-    },
     "vmName": {
       "type": "string",
       "metadata": {
-        "description": "VM name"
+        "description": "VM name — use this to connect via Azure Bastion in the portal"
       },
       "value": "[reference(resourceId('Microsoft.Resources/deployments', 'hyperv-host'), '2025-04-01').outputs.vmName.value]"
+    },
+    "bastionName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Bastion name"
+      },
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'network'), '2025-04-01').outputs.bastionName.value]"
+    },
+    "connectInstructions": {
+      "type": "string",
+      "metadata": {
+        "description": "How to connect: open Azure portal → VM → Connect → Bastion"
+      },
+      "value": "[format('Go to portal.azure.com → Resource Group → {0} → Connect → Bastion', reference(resourceId('Microsoft.Resources/deployments', 'hyperv-host'), '2025-04-01').outputs.vmName.value)]"
     }
   }
 }
