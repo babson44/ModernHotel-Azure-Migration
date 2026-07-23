@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ModernHotel.API/ModernHotel.API.csproj" />
+    <Project Path="src/ModernHotel.Core/ModernHotel.Core.csproj" />
+    <Project Path="src/ModernHotel.Infrastructure/ModernHotel.Infrastructure.csproj" />
+    <Project Path="src/ModernHotel.Web/ModernHotel.Web.csproj" />
+  </Folder>
+</Solution>

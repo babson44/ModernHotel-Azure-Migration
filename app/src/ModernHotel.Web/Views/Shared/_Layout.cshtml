@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Grand Azure Hotel</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root { --hotel-gold: #c9a84c; --hotel-dark: #1a1a2e; --hotel-accent: #16213e; }
+        body { background-color: #f8f9fa; }
+        .sidebar { width: 240px; min-height: 100vh; background: var(--hotel-dark); position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar .brand { padding: 1.5rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar .brand h5 { color: var(--hotel-gold); font-weight: 700; margin: 0; letter-spacing: 1px; }
+        .sidebar .brand small { color: rgba(255,255,255,0.5); font-size: 0.7rem; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 0.6rem 1rem; border-radius: 6px; margin: 2px 8px; transition: all 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(201,168,76,0.2); }
+        .sidebar .nav-link i { width: 20px; }
+        .sidebar .nav-section { color: rgba(255,255,255,0.3); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; padding: 1rem 1rem 0.25rem; }
+        .main-content { margin-left: 240px; min-height: 100vh; }
+        .top-bar { background: #fff; border-bottom: 1px solid #e9ecef; padding: 0.75rem 1.5rem; }
+        .page-body { padding: 1.5rem; }
+        .stat-card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .icon-box { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+        .badge-checkedin { background: #d1fae5; color: #065f46; }
+        .badge-checkedout { background: #e5e7eb; color: #374151; }
+        .badge-confirmed { background: #dbeafe; color: #1e40af; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-cancelled { background: #fee2e2; color: #991b1b; }
+        .badge-noshow { background: #f3e8ff; color: #6b21a8; }
+        .room-card { border-radius: 10px; border: 1px solid #e9ecef; transition: all 0.2s; }
+        .room-card:hover { border-color: var(--hotel-gold); box-shadow: 0 4px 12px rgba(201,168,76,0.15); }
+        .room-available { border-left: 4px solid #10b981; }
+        .room-occupied { border-left: 4px solid #ef4444; }
+        .table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">
+            <h5><i class="bi bi-building me-2"></i>Grand Azure</h5>
+            <small>Hotel Management</small>
+        </div>
+        <nav class="mt-3">
+            <div class="nav-section">Operations</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+               asp-controller="Dashboard" asp-action="Index">
+                <i class="bi bi-grid-1x2 me-2"></i> Dashboard
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reservations" ? "active" : "")"
+               asp-controller="Reservations" asp-action="Index">
+                <i class="bi bi-calendar-check me-2"></i> Reservations
+            </a>
+            <div class="nav-section mt-2">Directory</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Guests" ? "active" : "")"
+               asp-controller="Guests" asp-action="Index">
+                <i class="bi bi-people me-2"></i> Guests
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rooms" ? "active" : "")"
+               asp-controller="Rooms" asp-action="Index">
+                <i class="bi bi-door-open me-2"></i> Rooms
+            </a>
+            <div class="nav-section mt-2">System</div>
+            <a class="nav-link" href="/swagger" target="_blank">
+                <i class="bi bi-code-square me-2"></i> API Explorer
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 fw-semibold text-dark">@ViewData["Title"]</h6>
+            <span class="text-muted small"><i class="bi bi-clock me-1"></i>@DateTime.Now.ToString("dddd, MMMM d yyyy")</span>
+        </div>
+        <div class="page-body">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

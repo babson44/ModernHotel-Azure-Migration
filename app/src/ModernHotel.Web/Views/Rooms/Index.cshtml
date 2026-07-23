@@ -1,0 +1,56 @@
+@model List<ModernHotel.Core.DTOs.RoomDto>
+@{
+    ViewData["Title"] = "Rooms";
+    var available = Model.Count(r => r.IsAvailableToday);
+    var occupied = Model.Count(r => !r.IsAvailableToday && r.IsActive);
+}
+
+<div class="row g-2 mb-4">
+    <div class="col-auto">
+        <div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 p-2 fs-6">
+            <i class="bi bi-check-circle me-1"></i>@available Available
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 p-2 fs-6">
+            <i class="bi bi-x-circle me-1"></i>@occupied Occupied
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    @foreach (var room in Model.OrderBy(r => r.Floor).ThenBy(r => r.RoomNumber))
+    {
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+            <div class="card room-card @(room.IsAvailableToday ? "room-available" : "room-occupied")">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="fw-bold fs-5">@room.RoomNumber</span>
+                            <span class="text-muted small ms-1">Floor @room.Floor</span>
+                        </div>
+                        @if (room.IsAvailableToday)
+                        {
+                            <span class="badge bg-success" style="font-size:0.65rem;">Available</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger" style="font-size:0.65rem;">Occupied</span>
+                        }
+                    </div>
+                    <div class="fw-semibold small text-primary mb-1">@room.TypeName</div>
+                    <div class="text-muted" style="font-size:0.75rem;">@room.Description</div>
+                    <hr class="my-2" />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="bi bi-person me-1"></i>Max @room.MaxOccupancy
+                            &nbsp;|&nbsp;
+                            <i class="bi bi-moon me-1"></i>@room.BedCount bed(s)
+                        </div>
+                        <div class="fw-bold text-dark">$@room.RatePerNight.ToString("N0")<span class="text-muted fw-normal" style="font-size:0.7rem;">/night</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

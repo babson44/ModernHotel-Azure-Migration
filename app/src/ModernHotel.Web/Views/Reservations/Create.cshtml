@@ -1,0 +1,72 @@
+@model ModernHotel.Core.DTOs.CreateReservationDto
+@{
+    ViewData["Title"] = "New Reservation";
+    var guests = ViewBag.Guests as List<ModernHotel.Core.DTOs.GuestDto> ?? new();
+    var rooms = ViewBag.Rooms as List<ModernHotel.Core.DTOs.RoomDto> ?? new();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card stat-card">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Guest</label>
+                            <select name="GuestId" class="form-select" required>
+                                <option value="">— Select a guest —</option>
+                                @foreach (var g in guests.OrderBy(g => g.LastName))
+                                {
+                                    <option value="@g.Id">@g.FullName (@g.Email)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Room</label>
+                            <select name="RoomId" class="form-select" required>
+                                <option value="">— Select a room —</option>
+                                @foreach (var r in rooms.OrderBy(r => r.RoomNumber))
+                                {
+                                    <option value="@r.Id">
+                                        @r.RoomNumber — @r.TypeName ($@r.RatePerNight.ToString("N0")/night)
+                                        @(r.IsAvailableToday ? "" : " [OCCUPIED]")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Check In</label>
+                            <input type="date" name="CheckInDate" class="form-control"
+                                   value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Check Out</label>
+                            <input type="date" name="CheckOutDate" class="form-control"
+                                   value="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Adults</label>
+                            <input type="number" name="Adults" class="form-control" value="1" min="1" max="6" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Children</label>
+                            <input type="number" name="Children" class="form-control" value="0" min="0" max="6" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Special Requests <span class="text-muted fw-normal">(optional)</span></label>
+                            <textarea name="SpecialRequests" class="form-control" rows="2"
+                                      placeholder="e.g. Late check-in, high floor, allergy-free pillows"></textarea>
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-warning text-white">
+                                <i class="bi bi-check2 me-1"></i>Create Reservation
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

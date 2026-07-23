@@ -1,0 +1,55 @@
+@model List<ModernHotel.Core.DTOs.GuestDto>
+@{
+    ViewData["Title"] = "Guests";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="Create" class="btn btn-sm btn-warning text-white">
+        <i class="bi bi-person-plus me-1"></i>Add Guest
+    </a>
+</div>
+
+<div class="card stat-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Nationality</th>
+                        <th>Bookings</th>
+                        <th>Member Since</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model)
+                    {
+                        <tr>
+                            <td class="text-muted small">@g.Id</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                         style="width:32px;height:32px;font-size:0.75rem;font-weight:600;flex-shrink:0;">
+                                        @g.FirstName[0]@g.LastName[0]
+                                    </div>
+                                    <span class="fw-semibold small">@g.FullName</span>
+                                </div>
+                            </td>
+                            <td class="small text-muted">@g.Email</td>
+                            <td class="small">@g.Phone</td>
+                            <td class="small">@(g.Nationality ?? "—")</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">@g.TotalReservations</span>
+                            </td>
+                            <td class="small text-muted">@g.CreatedAt.ToString("MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="text-muted small mt-2">@Model.Count guest(s) total</div>
