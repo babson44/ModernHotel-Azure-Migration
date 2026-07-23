@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Bootstrap script for the ModernHotel Hyper-V host VM.
     Runs automatically via Azure Custom Script Extension after VM deployment.
@@ -45,7 +45,7 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $line
 }
 
-# ── Phase 0: Initialise data disk ────────────────────────────────────────────
+# - Phase 0: Initialise data disk -
 Write-Log "=== Phase 0: Initialise data disk ==="
 $disk = Get-Disk | Where-Object { $_.PartitionStyle -eq 'RAW' } | Select-Object -First 1
 if ($disk) {
@@ -55,7 +55,7 @@ if ($disk) {
         Format-Volume -FileSystem NTFS -NewFileSystemLabel 'HyperVData' -Confirm:$false | Out-Null
     Write-Log "Data disk initialised as D:"
 } else {
-    Write-Log "No RAW disk found — D: may already exist" 'WARN'
+    Write-Log "No RAW disk found - D: may already exist" 'WARN'
 }
 
 New-Item -ItemType Directory -Force -Path 'D:\HyperV\VHDs'     | Out-Null
@@ -63,7 +63,7 @@ New-Item -ItemType Directory -Force -Path 'D:\HyperV\VMs'      | Out-Null
 New-Item -ItemType Directory -Force -Path 'D:\HyperV\ISOs'     | Out-Null
 New-Item -ItemType Directory -Force -Path 'D:\HyperV\Scripts'  | Out-Null
 
-# ── Phase 1: Install Hyper-V ──────────────────────────────────────────────────
+# - Phase 1: Install Hyper-V -
 Write-Log "=== Phase 1: Install Hyper-V ==="
 $hvFeature = Get-WindowsFeature -Name Hyper-V
 if (-not $hvFeature.Installed) {
@@ -73,7 +73,7 @@ if (-not $hvFeature.Installed) {
     Write-Log "Hyper-V already installed"
 }
 
-# ── Phase 2: Create internal NAT switch ──────────────────────────────────────
+# - Phase 2: Create internal NAT switch -
 Write-Log "=== Phase 2: Create NAT virtual switch ==="
 $switchName = 'HotelInternalSwitch'
 if (-not (Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue)) {
@@ -86,13 +86,13 @@ if (-not (Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue)) {
     Write-Log "Switch $switchName already exists"
 }
 
-# ── Phase 3: Download Windows Server 2019 Evaluation ISO ─────────────────────
+# - Phase 3: Download Windows Server 2019 Evaluation ISO -
 Write-Log "=== Phase 3: Download Windows Server 2019 Evaluation ISO ==="
 $isoPath = 'D:\HyperV\ISOs\WS2019Eval.iso'
 if (-not (Test-Path $isoPath)) {
-    # Windows Server 2019 Evaluation — 180-day, no product key needed
-    $isoUrl = 'https://go.microsoft.com/fwlink/p/?LinkID=2195280&clcid=0x409&culture=en-us&country=US'
-    Write-Log "Downloading WS2019 ISO (4.7 GB — this takes ~10-20 min)..."
+    # Windows Server 2019 Evaluation - 180-day, no product key needed
+    $isoUrl = 'https://go.microsoft.com/fwlink/p/?LinkID=2195280-clcid=0x409-culture=en-us-country=US'
+    Write-Log "Downloading WS2019 ISO (4.7 GB - this takes ~10-20 min)..."
     $wc = New-Object System.Net.WebClient
     $wc.DownloadFile($isoUrl, $isoPath)
     Write-Log "ISO downloaded to $isoPath"
@@ -100,7 +100,7 @@ if (-not (Test-Path $isoPath)) {
     Write-Log "ISO already exists at $isoPath"
 }
 
-# ── Phase 4: Build base VHDX from ISO ────────────────────────────────────────
+# - Phase 4: Build base VHDX from ISO -
 Write-Log "=== Phase 4: Build base VHDX from ISO ==="
 $baseVhdx = 'D:\HyperV\VHDs\WS2019-Base.vhdx'
 
@@ -118,7 +118,7 @@ if (-not (Test-Path $baseVhdx)) {
     Write-Log "Base VHDX already exists"
 }
 
-# ── Phase 5: Create differencing VHDs & nested VMs ───────────────────────────
+# - Phase 5: Create differencing VHDs - nested VMs -
 Write-Log "=== Phase 5: Create nested VMs ==="
 
 $vms = @(
@@ -133,7 +133,7 @@ foreach ($vmCfg in $vms) {
     $vmPath   = "D:\HyperV\VMs\$vmName"
 
     if (Get-VM -Name $vmName -ErrorAction SilentlyContinue) {
-        Write-Log "VM $vmName already exists — skipping"
+        Write-Log "VM $vmName already exists - skipping"
         continue
     }
 
@@ -152,13 +152,13 @@ foreach ($vmCfg in $vms) {
         Set-VMProcessor -VMName $vmName -ExposeVirtualizationExtensions $true
     }
 
-    # Secure boot — WS2019 needs Microsoft UEFI CA
+    # Secure boot - WS2019 needs Microsoft UEFI CA
     Set-VMFirmware -VMName $vmName -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'
 
     Write-Log "VM $vmName created"
 }
 
-# ── Phase 6: Boot nested VMs for Windows setup ───────────────────────────────
+# - Phase 6: Boot nested VMs for Windows setup -
 Write-Log "=== Phase 6: Start nested VMs for Windows setup ==="
 foreach ($vmCfg in $vms) {
     $vmName = $vmCfg.Name
@@ -169,11 +169,11 @@ foreach ($vmCfg in $vms) {
     }
 }
 
-# ── Phase 7: Write unattend files to each VM ─────────────────────────────────
+# - Phase 7: Write unattend files to each VM -
 Write-Log "=== Phase 7: Configure static IPs and credentials via unattend ==="
 # Note: After Windows setup completes on each VM, the setup-*.ps1 scripts
 # (below) are injected and run via scheduled task.
-# This is an asynchronous process — setup-host.ps1 continues while VMs boot.
+# This is an asynchronous process - setup-host.ps1 continues while VMs boot.
 
 foreach ($vmCfg in $vms) {
     $vmName  = $vmCfg.Name
@@ -237,7 +237,7 @@ Write-Log "=== Bootstrap complete ==="
 Write-Log ""
 Write-Log "NEXT STEPS:"
 Write-Log "  1. RDP into this host at the public IP"
-Write-Log "  2. Open Hyper-V Manager — you will see hotel-sql, hotel-api, hotel-web"
+Write-Log "  2. Open Hyper-V Manager - you will see hotel-sql, hotel-api, hotel-web"
 Write-Log "  3. The nested VMs are completing Windows Server setup (allow 10-20 min)"
 Write-Log "  4. Setup scripts in D:\HyperV\Scripts\ configure each VM"
 Write-Log "  5. To deploy Azure Migrate appliance: create a new VM in Hyper-V Manager,"
